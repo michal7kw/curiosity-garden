@@ -1,0 +1,316 @@
+---
+layout: layouts/index.njk
+title: Curiosity Garden
+eleventyExcludeFromCollections: true
+---
+
+{# ── Graph Script (must be before Alpine x-init references) ── #}
+<script>
+  // Initialize homepage dashboard — called from Alpine x-init
+  async function homeInit(state, nextTick) {
+    var gd = await fetch('/graph.json').then(function(r) { return r.json(); });
+    state.graphData = gd;
+
+    // Filter hidden nodes
+    var hiddens = Object.values(gd.nodes).filter(function(n) { return n.hide; }).map(function(n) { return n.id; });
+    var nodes = Object.values(gd.nodes).filter(function(n) { return !n.hide; });
+    var links = gd.links.filter(function(l) { return hiddens.indexOf(l.source) === -1 && hiddens.indexOf(l.target) === -1; });
+
+    state.fullGraphData = { nodes: nodes, links: links };
+    state.nodeCount = nodes.length;
+    state.linkCount = links.length;
+
+    // Count by entity type
+    var counts = {};
+    nodes.forEach(function(n) {
+      var t = (n.group || n.entityType || n.type || 'other').toLowerCase();
+      counts[t] = (counts[t] || 0) + 1;
+    });
+    state.typeCounts = counts;
+    state.loading = false;
+
+    // Render graph after DOM update
+    nextTick(function() {
+      if (state.fullGraphData && typeof ForceGraph !== 'undefined') {
+        state.graphInstance = homeRenderGraph(state.fullGraphData);
+      } else {
+        // ForceGraph may load async — retry
+        var iv = setInterval(function() {
+          if (typeof ForceGraph !== 'undefined') {
+            clearInterval(iv);
+            state.graphInstance = homeRenderGraph(state.fullGraphData);
+          }
+        }, 200);
+        setTimeout(function() { clearInterval(iv); }, 10000);
+      }
+    });
+  }
+
+  // Entity type colors matching graphScript.njk and _entity-types.scss
+  var homeEntityTypeColors = {
+    concept: '#3B82F6',
+    course: '#F59E0B',
+    skill: '#EAB308',
+    resource: '#22C55E',
+    question: '#8B5CF6',
+    insight: '#EC4899',
+    'default': '#888888'
+  };
+
+  function homeGetEntityColor(node) {
+    var t = (node.group || node.entityType || node.type || 'default').toLowerCase();
+    return homeEntityTypeColors[t] || homeEntityTypeColors['default'];
+  }
+
+  function htmlDecodeHome(input) {
+    var doc = new DOMParser().parseFromString(input, "text/html");
+    return doc.documentElement.textContent;
+  }
+
+  function getCssVarHome(variable) {
+    return getComputedStyle(document.body).getPropertyValue(variable);
+  }
+
+  function homeRenderGraph(graphData) {
+    if (!graphData) return null;
+    var el = document.getElementById('home-graph-container');
+    if (!el) return null;
+
+    var width = el.offsetWidth;
+    var height = el.offsetHeight;
+    var highlightNodes = new Set();
+    var hoverNode = null;
+    var color = getCssVarHome('--graph-main') || '#d4d4d4';
+    var mutedColor = getCssVarHome('--graph-muted') || '#555555';
+
+    var Graph = ForceGraph()(el)
+      .graphData(graphData)
+      .nodeId('id')
+      .nodeLabel('title')
+      .linkSource('source')
+      .linkTarget('target')
+      .d3AlphaDecay(0.10)
+      .width(width)
+      .height(height)
+      .linkDirectionalArrowLength(2)
+      .linkDirectionalArrowRelPos(0.5)
+      .autoPauseRedraw(false)
+      .linkColor(function(link) {
+        if (!hoverNode) return color;
+        return (link.source.id === hoverNode.id || link.target.id === hoverNode.id) ? color : mutedColor;
+      })
+      .nodeCanvasObject(function(node, ctx) {
+        var neighbours = (node.neighbors && node.neighbors.length) || 2;
+        var nodeR = Math.min(7, Math.max(neighbours / 2, 2));
+        var nodeColor = homeGetEntityColor(node);
+
+        ctx.beginPath();
+        ctx.arc(node.x, node.y, nodeR, 0, 2 * Math.PI, false);
+        if (!hoverNode) {
+          ctx.fillStyle = nodeColor;
+        } else {
+          ctx.fillStyle = (node === hoverNode || highlightNodes.has(node.url)) ? nodeColor : mutedColor;
+        }
+        ctx.fill();
+
+        // Label
+        var label = htmlDecodeHome(node.title);
+        ctx.font = '3.5px Sans-Serif';
+        ctx.textAlign = 'center';
+        ctx.textBaseline = 'top';
+        ctx.fillStyle = color;
+        ctx.fillText(label, node.x, node.y + nodeR + 2);
+      })
+      .onNodeClick(function(node) {
+        window.location = node.url;
+      })
+      .onNodeHover(function(node) {
+        highlightNodes.clear();
+        if (node) {
+          highlightNodes.add(node);
+          if (node.neighbors) {
+            node.neighbors.forEach(function(n) { highlightNodes.add(n); });
+          }
+        }
+        hoverNode = node || null;
+      });
+
+    // Zoom to fit after layout settles
+    if (graphData.nodes.length > 2) {
+      setTimeout(function() { Graph.zoomToFit(400, 50); }, 500);
+    }
+
+    // Handle window resize
+    var resizeObserver = new ResizeObserver(function() {
+      Graph.width(el.offsetWidth).height(el.offsetHeight);
+    });
+    resizeObserver.observe(el);
+
+    return Graph;
+  }
+</script>
+
+<div class="home-dashboard"
+     x-data="{
+       graphData: null,
+       fullGraphData: null,
+       graphInstance: null,
+       nodeCount: 0,
+       linkCount: 0,
+       typeCounts: {},
+       loading: true,
+       showLegend: true
+     }"
+     x-init="homeInit($data, $nextTick)">
+
+  {# ── Compact Header ── #}
+  <header class="home-header">
+    <div class="home-header-left">
+      <h1>Curiosity Garden</h1>
+      <p class="home-subtitle">Explore ideas. Learn skills. See connections.</p>
+    </div>
+    <div class="home-header-right">
+      <a href="/search/" class="home-header-link">Search</a>
+      <a href="/graph/" class="home-header-link">Full Graph</a>
+    </div>
+  </header>
+
+  {# ── Entity Stat Chips ── #}
+  <section class="home-stats">
+    <div class="stat-chip total">
+      <span class="stat-count" x-text="nodeCount">...</span>
+      <span class="stat-label">Total</span>
+    </div>
+    <a href="/entities/concept/" class="stat-chip" style="--chip-color: #3B82F6;">
+      <span class="stat-icon">💡</span>
+      <span class="stat-count" x-text="typeCounts.concept || 0">0</span>
+      <span class="stat-label">Concepts</span>
+    </a>
+    <a href="/entities/course/" class="stat-chip" style="--chip-color: #F59E0B;">
+      <span class="stat-icon">🎓</span>
+      <span class="stat-count" x-text="typeCounts.course || 0">0</span>
+      <span class="stat-label">Courses</span>
+    </a>
+    <a href="/entities/skill/" class="stat-chip" style="--chip-color: #EAB308;">
+      <span class="stat-icon">🎯</span>
+      <span class="stat-count" x-text="typeCounts.skill || 0">0</span>
+      <span class="stat-label">Skills</span>
+    </a>
+    <a href="/entities/resource/" class="stat-chip" style="--chip-color: #22C55E;">
+      <span class="stat-icon">📚</span>
+      <span class="stat-count" x-text="typeCounts.resource || 0">0</span>
+      <span class="stat-label">Resources</span>
+    </a>
+    <a href="/entities/question/" class="stat-chip" style="--chip-color: #8B5CF6;">
+      <span class="stat-icon">❓</span>
+      <span class="stat-count" x-text="typeCounts.question || 0">0</span>
+      <span class="stat-label">Questions</span>
+    </a>
+    <a href="/entities/insight/" class="stat-chip" style="--chip-color: #EC4899;">
+      <span class="stat-icon">✨</span>
+      <span class="stat-count" x-text="typeCounts.insight || 0">0</span>
+      <span class="stat-label">Insights</span>
+    </a>
+  </section>
+
+  {# ── Knowledge Graph ── #}
+  <section class="home-graph-section">
+    {# Loading state #}
+    <div class="home-graph-loading" x-show="loading" x-cloak>
+      <div class="loading-spinner"></div>
+      <span>Loading knowledge graph...</span>
+    </div>
+
+    {# Graph container #}
+    <div class="home-graph" x-show="!loading" x-cloak>
+      <div id="home-graph-container"></div>
+
+      {# Legend overlay #}
+      <div class="home-legend" x-show="showLegend" x-transition>
+        <div class="home-legend-header">
+          <span>Entity Types</span>
+          <button class="home-legend-close" x-on:click="showLegend = false">&times;</button>
+        </div>
+        <div class="home-legend-items">
+          <div class="home-legend-item"><span class="legend-dot" style="background: #3B82F6;"></span> Concept</div>
+          <div class="home-legend-item"><span class="legend-dot" style="background: #F59E0B;"></span> Course</div>
+          <div class="home-legend-item"><span class="legend-dot" style="background: #EAB308;"></span> Skill</div>
+          <div class="home-legend-item"><span class="legend-dot" style="background: #22C55E;"></span> Resource</div>
+          <div class="home-legend-item"><span class="legend-dot" style="background: #8B5CF6;"></span> Question</div>
+          <div class="home-legend-item"><span class="legend-dot" style="background: #EC4899;"></span> Insight</div>
+          <div class="home-legend-item"><span class="legend-dot" style="background: #888888;"></span> Other</div>
+        </div>
+      </div>
+    </div>
+
+    {# Graph info bar #}
+    <div class="home-graph-info" x-show="!loading" x-cloak>
+      <span class="graph-info-text">
+        <strong x-text="nodeCount">0</strong> nodes &middot;
+        <strong x-text="linkCount">0</strong> connections
+      </span>
+      <button class="home-legend-toggle" x-on:click="showLegend = !showLegend">
+        <template x-if="showLegend">
+          <span>Hide Legend</span>
+        </template>
+        <template x-if="!showLegend">
+          <span>Show Legend</span>
+        </template>
+      </button>
+    </div>
+  </section>
+
+  {# ── Browse by Category ── #}
+  <section class="home-categories">
+    <h2>Browse by Category</h2>
+    <div class="home-categories-grid">
+      <a href="/entities/concept/" class="home-cat-card concept">
+        <span class="cat-icon">💡</span>
+        <div class="cat-content">
+          <span class="cat-label">Concepts</span>
+          <span class="cat-desc">Core ideas and mental models</span>
+        </div>
+      </a>
+      <a href="/entities/course/" class="home-cat-card course">
+        <span class="cat-icon">🎓</span>
+        <div class="cat-content">
+          <span class="cat-label">Courses</span>
+          <span class="cat-desc">Learning journeys and curricula</span>
+        </div>
+      </a>
+      <a href="/entities/skill/" class="home-cat-card skill">
+        <span class="cat-icon">🎯</span>
+        <div class="cat-content">
+          <span class="cat-label">Skills</span>
+          <span class="cat-desc">Abilities to develop and track</span>
+        </div>
+      </a>
+      <a href="/entities/resource/" class="home-cat-card resource">
+        <span class="cat-icon">📚</span>
+        <div class="cat-content">
+          <span class="cat-label">Resources</span>
+          <span class="cat-desc">Books, articles, and materials</span>
+        </div>
+      </a>
+      <a href="/entities/question/" class="home-cat-card question">
+        <span class="cat-icon">❓</span>
+        <div class="cat-content">
+          <span class="cat-label">Questions</span>
+          <span class="cat-desc">Open inquiries and research gaps</span>
+        </div>
+      </a>
+      <a href="/entities/insight/" class="home-cat-card insight">
+        <span class="cat-icon">✨</span>
+        <div class="cat-content">
+          <span class="cat-label">Insights</span>
+          <span class="cat-desc">Aha moments and realizations</span>
+        </div>
+      </a>
+    </div>
+  </section>
+
+  {# ── Footer ── #}
+  <footer class="home-footer-minimal">
+    <p>Curiosity Garden &middot; Explore. Learn. Connect.</p>
+  </footer>
+</div>

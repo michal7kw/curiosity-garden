@@ -1,0 +1,39 @@
+{#
+  Entity Badge Component
+  Displays a color-coded badge showing the entity type
+
+  Usage:
+  {% include "components/entityBadge.njk" %}
+
+  Expected context:
+  - entityType: The entity type (biomarker, drug, supplement, etc.)
+
+  Optional:
+  - badgeSize: "small", "normal" (default), or "large"
+  - badgeStyle: "filled" (default) or "outline"
+#}
+
+{% set type = entityType or page.data['dg-entity-type'] or page.data.type %}
+{% set size = badgeSize | default('normal') %}
+{% set style = badgeStyle | default('filled') %}
+
+{# Entity type icons (Learning-focused) #}
+{% set entityIcons = {
+  'concept': '💡',
+  'course': '🎓',
+  'skill': '🎯',
+  'resource': '📚',
+  'question': '❓',
+  'insight': '✨'
+} %}
+
+{% if type %}
+  {% set typeIcon = entityIcons[type | lower] or '📄' %}
+  {% set sizeClass = 'small' if size == 'small' else ('large' if size == 'large' else '') %}
+  {% set styleClass = 'outline' if style == 'outline' else '' %}
+
+  <span class="entity-badge {{ type | lower }} {{ sizeClass }} {{ styleClass }}" data-entity-type="{{ type | lower }}">
+    <span class="badge-icon">{{ typeIcon }}</span>
+    <span class="badge-text">{{ type | capitalize }}</span>
+  </span>
+{% endif %}

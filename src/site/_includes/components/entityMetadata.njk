@@ -1,0 +1,235 @@
+{#
+  Entity Metadata Component
+  Displays structured metadata for entity notes
+
+  Usage:
+  {% include "components/entityMetadata.njk" %}
+
+  Expected context from frontmatter:
+  - name: Entity name
+  - description: Brief description
+  - dg-entity-type: Entity type
+  - tags: Array of tags
+  - created: Creation date
+  - last_modified: Last modification date
+  - id: Entity ID
+  - source: Data source
+
+  Optional enhanced fields:
+  - difficulty: Difficulty level (beginner, intermediate, advanced)
+  - status: Learning status (exploring, learning, practicing, mastered)
+  - wikipedia_url: Wikipedia article URL
+  - youtube_url: YouTube video URL
+  - goodreads_url: Goodreads book URL
+  - github_url: GitHub repository URL
+  - url: Generic URL
+
+  Privacy fields (NEVER displayed):
+  - element_id, primekg_element_id, isPersonal, needs_review, last_sync
+#}
+
+{% set type = page.data['dg-entity-type'] or page.data.type %}
+{% set entityName = page.data.name or title or page.fileSlug %}
+{% set entityDesc = page.data.description or '' %}
+{% set entityId = page.data.id or '' %}
+{% set entitySource = page.data.source or '' %}
+{% set entityTags = tags or page.data.tags or [] %}
+{% set createdDate = page.data.created or created %}
+{% set modifiedDate = page.data.last_modified or page.data.updated or updated %}
+
+{# Enhanced fields for learning content #}
+{% set difficulty = page.data.difficulty %}
+{% set status = page.data.status %}
+{% set wikipediaUrl = page.data.wikipedia_url %}
+{% set youtubeUrl = page.data.youtube_url %}
+{% set goodreadsUrl = page.data.goodreads_url %}
+{% set githubUrl = page.data.github_url %}
+{% set genericUrl = page.data.url %}
+
+{# Entity icons (Learning-focused) #}
+{% set entityIcons = {
+  'concept': '💡',
+  'course': '🎓',
+  'skill': '🎯',
+  'resource': '📚',
+  'question': '❓',
+  'insight': '✨'
+} %}
+
+{% if type %}
+<div class="entity-metadata" data-entity-type="{{ type | lower }}">
+  <div class="metadata-header">
+    <h4>
+      <i icon-name="info"></i>
+      Entity Information
+    </h4>
+    {% include "components/entityBadge.njk" with {entityType: type, badgeSize: 'small'} %}
+  </div>
+
+  <div class="metadata-grid">
+    {% if entityName %}
+    <div class="metadata-item">
+      <div class="metadata-label">Name</div>
+      <div class="metadata-value">{{ entityName }}</div>
+    </div>
+    {% endif %}
+
+    {% if type %}
+    <div class="metadata-item">
+      <div class="metadata-label">Type</div>
+      <div class="metadata-value">
+        {{ entityIcons[type | lower] or '📄' }}
+        {{ type | capitalize }}
+      </div>
+    </div>
+    {% endif %}
+
+    {% if entityId %}
+    <div class="metadata-item">
+      <div class="metadata-label">ID</div>
+      <div class="metadata-value">
+        <code>{{ entityId }}</code>
+      </div>
+    </div>
+    {% endif %}
+
+    {% if entitySource %}
+    <div class="metadata-item">
+      <div class="metadata-label">Source</div>
+      <div class="metadata-value">{{ entitySource }}</div>
+    </div>
+    {% endif %}
+
+    {% if createdDate %}
+    <div class="metadata-item">
+      <div class="metadata-label">Created</div>
+      <div class="metadata-value">
+        <span class="human-date" data-date="{{ createdDate }}">{{ createdDate }}</span>
+      </div>
+    </div>
+    {% endif %}
+
+    {% if modifiedDate %}
+    <div class="metadata-item">
+      <div class="metadata-label">Updated</div>
+      <div class="metadata-value">
+        <span class="human-date" data-date="{{ modifiedDate }}">{{ modifiedDate }}</span>
+      </div>
+    </div>
+    {% endif %}
+  </div>
+
+  {# Learning Progress Section #}
+  {% if difficulty or status %}
+  <div class="metadata-quality">
+    <div class="metadata-label" style="margin-top: 1rem; margin-bottom: 0.5rem;">Learning Progress</div>
+    <div class="metadata-grid">
+      {% if difficulty %}
+      <div class="metadata-item">
+        <div class="metadata-label">Difficulty</div>
+        <div class="metadata-value">
+          <span class="difficulty-badge {% if difficulty == 'beginner' %}beginner{% elif difficulty == 'intermediate' %}intermediate{% else %}advanced{% endif %}">
+            {{ difficulty | capitalize }}
+          </span>
+        </div>
+      </div>
+      {% endif %}
+
+      {% if status %}
+      <div class="metadata-item">
+        <div class="metadata-label">Status</div>
+        <div class="metadata-value">
+          <span class="status-badge {{ status }}">
+            {{ status | capitalize }}
+          </span>
+        </div>
+      </div>
+      {% endif %}
+    </div>
+  </div>
+  {% endif %}
+
+  {# External Resources Section #}
+  {% if wikipediaUrl or youtubeUrl or goodreadsUrl or githubUrl or genericUrl %}
+  <div class="metadata-links">
+    <div class="metadata-label" style="margin-top: 1rem; margin-bottom: 0.5rem;">External Resources</div>
+    <div class="database-links">
+      {% if wikipediaUrl %}
+      <a href="{{ wikipediaUrl }}"
+         target="_blank"
+         rel="noopener noreferrer"
+         class="db-link wikipedia"
+         title="View on Wikipedia">
+        <i icon-name="book-open"></i>
+        Wikipedia
+      </a>
+      {% endif %}
+
+      {% if youtubeUrl %}
+      <a href="{{ youtubeUrl }}"
+         target="_blank"
+         rel="noopener noreferrer"
+         class="db-link youtube"
+         title="Watch on YouTube">
+        <i icon-name="play-circle"></i>
+        YouTube
+      </a>
+      {% endif %}
+
+      {% if goodreadsUrl %}
+      <a href="{{ goodreadsUrl }}"
+         target="_blank"
+         rel="noopener noreferrer"
+         class="db-link goodreads"
+         title="View on Goodreads">
+        <i icon-name="book"></i>
+        Goodreads
+      </a>
+      {% endif %}
+
+      {% if githubUrl %}
+      <a href="{{ githubUrl }}"
+         target="_blank"
+         rel="noopener noreferrer"
+         class="db-link github"
+         title="View on GitHub">
+        <i icon-name="github"></i>
+        GitHub
+      </a>
+      {% endif %}
+
+      {% if genericUrl %}
+      <a href="{{ genericUrl }}"
+         target="_blank"
+         rel="noopener noreferrer"
+         class="db-link url"
+         title="Visit Resource">
+        <i icon-name="external-link"></i>
+        Visit Resource
+      </a>
+      {% endif %}
+    </div>
+  </div>
+  {% endif %}
+
+  {% if entityDesc %}
+  <div class="metadata-description">
+    <div class="metadata-label">Description</div>
+    <p>{{ entityDesc }}</p>
+  </div>
+  {% endif %}
+
+  {% if entityTags and entityTags.length > 0 %}
+  <div class="metadata-tags">
+    <div class="metadata-label">Tags</div>
+    <div class="tag-list">
+      {% for tag in entityTags %}
+        {% if tag != 'gardenEntry' and tag != 'note' %}
+        <a class="tag" onclick="toggleTagSearch(this)">#{{ tag }}</a>
+        {% endif %}
+      {% endfor %}
+    </div>
+  </div>
+  {% endif %}
+</div>
+{% endif %}
