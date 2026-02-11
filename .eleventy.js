@@ -10,6 +10,13 @@ const pluginRss = require('@11ty/eleventy-plugin-rss');
 
 const { headerToId, namedHeadingsFilter } = require('./src/helpers/utils');
 const { userMarkdownSetup, userEleventySetup } = require('./src/helpers/userSetup');
+const {
+  transformSvgContent,
+  parseElementLinks,
+  processExcalidrawTransclusions,
+  isExcalidrawFile,
+  getExcalidrawSvgPath,
+} = require('./src/helpers/excalidrawUtils');
 const path = require('path');
 
 const Image = require('@11ty/eleventy-img');
@@ -492,6 +499,129 @@ module.exports = function (eleventyConfig) {
       });
     }
     return str && parsed.innerHTML;
+  });
+
+  // ==========================================================================
+  // Excalidraw SVG Link Transformation
+  // ==========================================================================
+
+  /**
+   * Transform Excalidraw SVG links from obsidian:// URLs to garden URLs.
+   * Handles both inline SVGs and img tags pointing to SVG files.
+   */
+  eleventyConfig.addTransform('excalidraw-svg-links', function (content, outputPath) {
+    if (!outputPath || !outputPath.endsWith('.html')) return content;
+    if (!content || !content.includes('excalidraw')) return content;
+
+    const parsed = parse(content);
+
+    // Process inline SVGs wrapped in excalidraw containers
+    for (const container of parsed.querySelectorAll('.excalidraw-svg, .excalidraw-embed')) {
+      const svgElement = container.querySelector('svg');
+      if (svgElement) {
+        let svgHtml = svgElement.outerHTML;
+
+        // Transform obsidian:// links to garden URLs
+        svgHtml = svgHtml.replace(
+          /href="obsidian:\/\/open\?[^"]*file=([^"&]+)[^"]*"/g,
+          (match, encodedFile) => {
+            const noteName = decodeURIComponent(encodedFile).replace(/\.md$/, '');
+            // Use simple slug-based URL (will be resolved at build time)
+            const slug = noteName
+              .toLowerCase()
+              .replace(/\s+/g, '-')
+              .replace(/[^a-z0-9-]/g, '');
+            return `href="/notes/${slug}/" class="excalidraw-link" data-internal-link`;
+          }
+        );
+
+        // Transform [[WikiLink]] format links to garden URLs
+        // Excalidraw exports links with href="[[NoteName]]" format
+        svgHtml = svgHtml.replace(/href="\[\[([^\]|]+)(?:\|[^\]]+)?\]\]"/g, (match, noteName) => {
+          // Convert underscores to spaces to match file names
+          const displayName = noteName.replace(/_/g, ' ');
+          // URL encode for spaces in path
+          const encodedName = encodeURIComponent(displayName);
+          // Dynamically resolve entity type by scanning the notes directory
+          const notesDir = './src/site/notes/entities/';
+          let resolvedType = 'note'; // fallback default
+          try {
+            const entityTypes = fs.readdirSync(notesDir).filter(d =>
+              fs.statSync(path.join(notesDir, d)).isDirectory()
+            );
+            for (const type of entityTypes) {
+              const testPath = path.join(notesDir, type, `${displayName}.md`);
+              const testPathSlug = path.join(notesDir, type, `${encodedName}.md`);
+              if (fs.existsSync(testPath) || fs.existsSync(testPathSlug)) {
+                resolvedType = type;
+                break;
+              }
+            }
+          } catch (e) { /* directory doesn't exist yet, use fallback */ }
+          return `href="/notes/entities/${resolvedType}/${encodedName}/" class="excalidraw-link" data-internal-link`;
+        });
+
+        // Make all links in SVG clickable
+        svgHtml = svgHtml.replace(
+          /<a\s+([^>]*)>/g,
+          '<a $1 style="pointer-events: all; cursor: pointer;">'
+        );
+
+        // Update the SVG content
+        const newSvg = parse(svgHtml);
+        svgElement.innerHTML = newSvg.innerHTML;
+        if (newSvg.querySelector('svg')) {
+          svgElement.setAttribute('class', newSvg.querySelector('svg').getAttribute('class') || '');
+        }
+      }
+    }
+
+    // Process any img tags pointing to SVG files that should be interactive
+    for (const img of parsed.querySelectorAll('img[src$=".svg"]')) {
+      const src = img.getAttribute('src');
+      if (src && src.includes('excalidraw')) {
+        // Mark for client-side processing
+        img.setAttribute('data-excalidraw-svg', 'true');
+        img.setAttribute('loading', 'lazy');
+      }
+    }
+
+    return parsed.innerHTML;
+  });
+
+  /**
+   * Process Excalidraw transclusions (![[drawing.excalidraw]]).
+   * Converts Excalidraw embeds to inline SVGs with clickable links.
+   */
+  eleventyConfig.addTransform('excalidraw-transclusion', function (content, outputPath) {
+    if (!outputPath || !outputPath.endsWith('.html')) return content;
+    if (!content || !content.includes('.excalidraw')) return content;
+
+    const parsed = parse(content);
+
+    // Find placeholders left by markdown processing for excalidraw embeds
+    // These might appear as broken image links or special divs
+    for (const element of parsed.querySelectorAll('.internal-embed[src*=".excalidraw"]')) {
+      const src = element.getAttribute('src');
+      if (src) {
+        // Try to load the SVG file
+        const svgPath = src.replace('.excalidraw.md', '.svg').replace('.excalidraw', '.svg');
+        const fullPath = path.join('./src/site/notes', svgPath);
+
+        try {
+          if (fs.existsSync(fullPath)) {
+            const svgContent = fs.readFileSync(fullPath, 'utf8');
+            element.innerHTML = `<div class="excalidraw-svg">${svgContent}</div>`;
+            element.removeAttribute('src');
+            element.setAttribute('class', 'excalidraw-embed');
+          }
+        } catch (e) {
+          console.warn(`Could not load Excalidraw SVG: ${fullPath}`);
+        }
+      }
+    }
+
+    return parsed.innerHTML;
   });
 
   eleventyConfig.addTransform('htmlMinifier', (content, outputPath) => {

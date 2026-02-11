@@ -2,12 +2,12 @@
 created: 2026-01-30
 updated: 2026-01-30
 ---
-# CLAUDE.md - curiosity_garden_template
+# CLAUDE.md - curiosity_garden
 
 ## Overview
 This directory contains a digital garden template for publishing learning-focused knowledge content from Obsidian to the web. It's built on Eleventy (11ty) and designed for exploring ideas, tracking skills, and sharing insights across any domain.
 
-This is a fork of `digitalgarden_template` customized for the Curiosity Knowledge Garden.
+This is a fork of `digitalgarden_template` customized for the Curiosity Knowledge Garden. (Previously named `curiosity_garden_template`; renamed to `curiosity_garden` to avoid confusion with the archived GitHub repo of the same name.)
 
 ## Key Components
 
@@ -46,7 +46,7 @@ This is a fork of `digitalgarden_template` customized for the Curiosity Knowledg
 ### Setup and Development
 ```bash
 # Navigate to curiosity garden directory from repository root
-cd curiosity_garden_template
+cd curiosity_garden
 
 # Install dependencies (first-time setup)
 npm install
@@ -154,7 +154,7 @@ dgShowTags=true
 
 ## Differences from digitalgarden_template
 
-| Aspect | digitalgarden_template | curiosity_garden_template |
+| Aspect | digitalgarden_template | curiosity_garden |
 |--------|----------------------|---------------------------|
 | Focus | Medical knowledge | General learning |
 | Entity types | Biomarker, Drug, Supplement, etc. | Concept, Course, Skill, etc. |
