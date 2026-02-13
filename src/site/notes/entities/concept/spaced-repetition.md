@@ -1,5 +1,5 @@
 ---
-created: '2026-02-13T19:23:53.234091Z'
+created: '2026-02-13T19:24:33.410855Z'
 description: A learning technique that uses increasing time intervals between reviews
   to optimize memory retention
 dg-home: false
@@ -14,7 +14,7 @@ tags:
 templateEngineOverride: njk
 title: Spaced Repetition
 type: concept
-updated: '2026-02-13T19:23:53.234091Z'
+updated: '2026-02-13T19:24:33.410855Z'
 ---
 
 {% raw %}

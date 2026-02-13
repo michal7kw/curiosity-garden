@@ -1,5 +1,5 @@
 ---
-created: '2026-02-13T19:23:53.238249Z'
+created: '2026-02-13T19:24:33.420392Z'
 description: Harvard's renowned introduction to computer science covering computational
   thinking and programming fundamentals
 dg-home: false
@@ -14,7 +14,7 @@ tags:
 templateEngineOverride: njk
 title: CS50 Introduction to Computer Science
 type: course
-updated: '2026-02-13T19:23:53.238249Z'
+updated: '2026-02-13T19:24:33.420392Z'
 ---
 
 {% raw %}

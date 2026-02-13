@@ -1,5 +1,5 @@
 ---
-created: '2026-02-13T19:23:53.274089Z'
+created: '2026-02-13T19:24:33.454069Z'
 description: Techniques for reading faster while maintaining or improving comprehension
 dg-home: false
 dg-publish: true
@@ -13,7 +13,7 @@ tags:
 templateEngineOverride: njk
 title: Speed Reading
 type: skill
-updated: '2026-02-13T19:23:53.274089Z'
+updated: '2026-02-13T19:24:33.454069Z'
 ---
 
 {% raw %}

@@ -1,5 +1,5 @@
 ---
-created: '2026-02-13T19:23:53.244533Z'
+created: '2026-02-13T19:24:33.433489Z'
 description: The act of teaching or explaining a concept forces you to understand
   it more deeply than passive learning ever could
 dg-home: false
@@ -15,7 +15,7 @@ tags:
 templateEngineOverride: njk
 title: Teaching Forces Deeper Understanding
 type: insight
-updated: '2026-02-13T19:23:53.244533Z'
+updated: '2026-02-13T19:24:33.433489Z'
 ---
 
 {% raw %}

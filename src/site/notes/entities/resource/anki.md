@@ -1,5 +1,5 @@
 ---
-created: '2026-02-13T19:23:53.258900Z'
+created: '2026-02-13T19:24:33.442380Z'
 description: Powerful open-source flashcard software using spaced repetition for efficient
   memorization
 dg-home: false
@@ -15,7 +15,7 @@ tags:
 templateEngineOverride: njk
 title: Anki
 type: resource
-updated: '2026-02-13T19:23:53.258900Z'
+updated: '2026-02-13T19:24:33.442380Z'
 ---
 
 {% raw %}

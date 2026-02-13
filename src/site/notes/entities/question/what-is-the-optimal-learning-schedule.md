@@ -1,5 +1,5 @@
 ---
-created: '2026-02-13T19:23:53.253251Z'
+created: '2026-02-13T19:24:33.438719Z'
 description: Investigating the best way to structure daily and weekly learning for
   maximum skill acquisition
 dg-home: false
@@ -15,7 +15,7 @@ tags:
 templateEngineOverride: njk
 title: What Is The Optimal Learning Schedule
 type: question
-updated: '2026-02-13T19:23:53.253251Z'
+updated: '2026-02-13T19:24:33.438719Z'
 ---
 
 {% raw %}

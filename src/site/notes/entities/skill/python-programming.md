@@ -1,5 +1,5 @@
 ---
-created: '2026-02-13T19:23:53.270598Z'
+created: '2026-02-13T19:24:33.450366Z'
 description: General-purpose programming language known for readability and versatility
 dg-home: false
 dg-publish: true
@@ -13,7 +13,7 @@ tags:
 templateEngineOverride: njk
 title: Python Programming
 type: skill
-updated: '2026-02-13T19:23:53.270598Z'
+updated: '2026-02-13T19:24:33.450366Z'
 ---
 
 {% raw %}

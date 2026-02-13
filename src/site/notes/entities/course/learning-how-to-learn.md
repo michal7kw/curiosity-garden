@@ -1,5 +1,5 @@
 ---
-created: '2026-02-13T19:23:53.240350Z'
+created: '2026-02-13T19:24:33.426160Z'
 description: Coursera's most popular course on the science of effective learning and
   memory
 dg-home: false
@@ -14,7 +14,7 @@ tags:
 templateEngineOverride: njk
 title: Learning How to Learn
 type: course
-updated: '2026-02-13T19:23:53.240350Z'
+updated: '2026-02-13T19:24:33.426160Z'
 ---
 
 {% raw %}

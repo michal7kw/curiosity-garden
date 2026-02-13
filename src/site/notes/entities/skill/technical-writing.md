@@ -1,5 +1,5 @@
 ---
-created: '2026-02-13T19:23:53.276461Z'
+created: '2026-02-13T19:24:33.458786Z'
 description: The skill of clearly communicating complex technical concepts to diverse
   audiences
 dg-home: false
@@ -14,7 +14,7 @@ tags:
 templateEngineOverride: njk
 title: Technical Writing
 type: skill
-updated: '2026-02-13T19:23:53.276461Z'
+updated: '2026-02-13T19:24:33.458786Z'
 ---
 
 {% raw %}

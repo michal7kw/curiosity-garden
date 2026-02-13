@@ -1,5 +1,5 @@
 ---
-created: '2026-02-13T19:23:53.183856Z'
+created: '2026-02-13T19:24:33.408762Z'
 description: A foundational reasoning approach that breaks down complex problems into
   their most basic elements
 dg-home: false
@@ -14,7 +14,7 @@ tags:
 templateEngineOverride: njk
 title: First Principles Thinking
 type: concept
-updated: '2026-02-13T19:23:53.183856Z'
+updated: '2026-02-13T19:24:33.408762Z'
 ---
 
 {% raw %}

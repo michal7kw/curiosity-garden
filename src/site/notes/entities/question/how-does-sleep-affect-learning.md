@@ -1,5 +1,5 @@
 ---
-created: '2026-02-13T19:23:53.249023Z'
+created: '2026-02-13T19:24:33.436112Z'
 description: Exploring the relationship between sleep and memory consolidation
 dg-home: false
 dg-publish: true
@@ -14,7 +14,7 @@ tags:
 templateEngineOverride: njk
 title: How Does Sleep Affect Learning
 type: question
-updated: '2026-02-13T19:23:53.249023Z'
+updated: '2026-02-13T19:24:33.436112Z'
 ---
 
 {% raw %}

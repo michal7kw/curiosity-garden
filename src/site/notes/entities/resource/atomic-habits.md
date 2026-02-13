@@ -1,5 +1,5 @@
 ---
-created: '2026-02-13T19:23:53.263783Z'
+created: '2026-02-13T19:24:33.445020Z'
 description: James Clear's bestselling guide to building good habits and breaking
   bad ones
 dg-home: false
@@ -15,7 +15,7 @@ tags:
 templateEngineOverride: njk
 title: Atomic Habits
 type: resource
-updated: '2026-02-13T19:23:53.263783Z'
+updated: '2026-02-13T19:24:33.445020Z'
 ---
 
 {% raw %}

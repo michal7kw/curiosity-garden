@@ -1,5 +1,5 @@
 ---
-created: '2026-02-13T19:23:53.235653Z'
+created: '2026-02-13T19:24:33.417637Z'
 description: A learning method that uses teaching and simple explanation to achieve
   deep understanding
 dg-home: false
@@ -14,7 +14,7 @@ tags:
 templateEngineOverride: njk
 title: The Feynman Technique
 type: concept
-updated: '2026-02-13T19:23:53.235653Z'
+updated: '2026-02-13T19:24:33.417637Z'
 ---
 
 {% raw %}

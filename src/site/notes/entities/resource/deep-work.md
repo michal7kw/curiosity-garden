@@ -1,5 +1,5 @@
 ---
-created: '2026-02-13T19:23:53.267456Z'
+created: '2026-02-13T19:24:33.447117Z'
 description: Cal Newport's guide to focused success in a distracted world
 dg-home: false
 dg-publish: true
@@ -14,7 +14,7 @@ tags:
 templateEngineOverride: njk
 title: Deep Work
 type: resource
-updated: '2026-02-13T19:23:53.267456Z'
+updated: '2026-02-13T19:24:33.447117Z'
 ---
 
 {% raw %}

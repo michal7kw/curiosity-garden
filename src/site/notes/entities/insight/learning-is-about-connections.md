@@ -1,5 +1,5 @@
 ---
-created: '2026-02-13T19:23:53.242444Z'
+created: '2026-02-13T19:24:33.429767Z'
 description: Understanding comes from connecting new knowledge to existing knowledge,
   not from isolated memorization
 dg-home: false
@@ -14,7 +14,7 @@ tags:
 templateEngineOverride: njk
 title: Learning Is About Connections
 type: insight
-updated: '2026-02-13T19:23:53.242444Z'
+updated: '2026-02-13T19:24:33.429767Z'
 ---
 
 {% raw %}
