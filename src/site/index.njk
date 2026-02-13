@@ -16,7 +16,6 @@ eleventyExcludeFromCollections: true
     var nodes = Object.values(gd.nodes).filter(function(n) { return !n.hide; });
     var links = gd.links.filter(function(l) { return hiddens.indexOf(l.source) === -1 && hiddens.indexOf(l.target) === -1; });
 
-    state.fullGraphData = { nodes: nodes, links: links };
     state.nodeCount = nodes.length;
     state.linkCount = links.length;
 
@@ -27,6 +26,71 @@ eleventyExcludeFromCollections: true
       counts[t] = (counts[t] || 0) + 1;
     });
     state.typeCounts = counts;
+
+    // Sample up to 50 densely-connected, type-diverse nodes for homepage preview
+    var MAX_HOME_NODES = 50;
+    var previewNodes, previewLinks;
+    if (nodes.length <= MAX_HOME_NODES) {
+      previewNodes = nodes;
+      previewLinks = links;
+    } else {
+      // Build adjacency map
+      var adj = {};
+      var nodeById = {};
+      nodes.forEach(function(n) { adj[n.id] = []; nodeById[n.id] = n; });
+      links.forEach(function(l) {
+        var sid = typeof l.source === 'object' ? l.source.id : l.source;
+        var tid = typeof l.target === 'object' ? l.target.id : l.target;
+        if (adj[sid]) adj[sid].push(tid);
+        if (adj[tid]) adj[tid].push(sid);
+      });
+
+      // Seed: one high-degree node per entity type
+      var byType = {};
+      nodes.forEach(function(n) {
+        var t = (n.group || n.entityType || n.type || 'other').toLowerCase();
+        if (!byType[t]) byType[t] = [];
+        byType[t].push(n);
+      });
+      var pickedSet = new Set();
+      var pickedList = [];
+      Object.keys(byType).forEach(function(t) {
+        byType[t].sort(function(a, b) { return (adj[b.id].length) - (adj[a.id].length); });
+        var seed = byType[t][0];
+        if (seed && !pickedSet.has(seed.id)) {
+          pickedSet.add(seed.id);
+          pickedList.push(seed);
+        }
+      });
+
+      // Greedy expand: always pick the candidate with most links to picked set
+      while (pickedList.length < MAX_HOME_NODES) {
+        var bestNode = null;
+        var bestScore = 0;
+        var candidates = new Set();
+        pickedList.forEach(function(n) {
+          adj[n.id].forEach(function(nid) {
+            if (!pickedSet.has(nid) && nodeById[nid]) candidates.add(nid);
+          });
+        });
+        candidates.forEach(function(cid) {
+          var score = 0;
+          adj[cid].forEach(function(nid) { if (pickedSet.has(nid)) score++; });
+          if (score > bestScore) { bestScore = score; bestNode = nodeById[cid]; }
+        });
+        if (!bestNode) break;
+        pickedSet.add(bestNode.id);
+        pickedList.push(bestNode);
+      }
+
+      previewNodes = pickedList;
+      previewLinks = links.filter(function(l) {
+        var sid = typeof l.source === 'object' ? l.source.id : l.source;
+        var tid = typeof l.target === 'object' ? l.target.id : l.target;
+        return pickedSet.has(sid) && pickedSet.has(tid);
+      });
+    }
+    state.fullGraphData = { nodes: previewNodes, links: previewLinks };
     state.loading = false;
 
     // Render graph after DOM update
